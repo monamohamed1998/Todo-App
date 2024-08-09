@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:todo/app_theme.dart';
 import 'package:todo/home_page.dart';
 
 void main() {
@@ -12,7 +13,12 @@ class Todo extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: HomePage(),
+      routes: {
+        HomePage.routeName : (_) => HomePage(),
+  },
+  theme: AppTheme.lightTheme,
+  darkTheme: AppTheme.DarkTheme,
+  themeMode: ThemeMode.light,
     );
   }
 }
