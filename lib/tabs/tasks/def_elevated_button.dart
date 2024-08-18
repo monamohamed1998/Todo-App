@@ -1,12 +1,11 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:todo/app_theme.dart';
 
 class DefElevatedbutton extends StatelessWidget {
-  DefElevatedbutton({required this.label, required this.onpressed});
-  VoidCallback onpressed;
-  String label;
+  const DefElevatedbutton(
+      {super.key, required this.label, required this.onpressed});
+  final VoidCallback onpressed;
+  final String label;
   @override
   Widget build(BuildContext context) {
     return ElevatedButton(
@@ -17,10 +16,8 @@ class DefElevatedbutton extends StatelessWidget {
       },
       child: Text(
         label,
-        style: Theme.of(context)
-            .textTheme
-            .labelMedium
-            ?.copyWith(color: AppTheme.white, fontSize: 18),
+        style: Theme.of(context).textTheme.labelMedium?.copyWith(
+            color: AppTheme.white, fontSize: 20, fontWeight: FontWeight.bold),
       ),
     );
   }

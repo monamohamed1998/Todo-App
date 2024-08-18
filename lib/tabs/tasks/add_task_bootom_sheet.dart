@@ -1,9 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
+import 'package:toast/toast.dart' hide Toast;
+import 'package:todo/app_theme.dart';
+import 'package:todo/firebase_functions.dart';
+import 'package:todo/models/task_model.dart';
 import 'package:todo/tabs/tasks/def_elevated_button.dart';
 import 'package:todo/tabs/tasks/default_text_form_field.dart';
+import 'package:todo/tabs/tasks/tasks_provider.dart';
 
 class AddTaskBootomSheet extends StatefulWidget {
+  const AddTaskBootomSheet({super.key});
+
   @override
   State<AddTaskBootomSheet> createState() => _AddTaskBootomSheetState();
 }
@@ -18,7 +27,7 @@ class _AddTaskBootomSheetState extends State<AddTaskBootomSheet> {
   Widget build(BuildContext context) {
     return Container(
       // height: MediaQuery.of(context).size.height * 0.55,
-      padding: EdgeInsets.all(20),
+      padding: const EdgeInsets.all(20),
       child: Form(
         key: formkey,
         child: Column(
@@ -27,7 +36,7 @@ class _AddTaskBootomSheetState extends State<AddTaskBootomSheet> {
               "Add New Task",
               style: Theme.of(context).textTheme.titleLarge,
             ),
-            SizedBox(
+            const SizedBox(
               height: 15,
             ),
             Expanded(
@@ -42,7 +51,7 @@ class _AddTaskBootomSheetState extends State<AddTaskBootomSheet> {
                 },
               ),
             ),
-            SizedBox(
+            const SizedBox(
               height: 15,
             ),
             Expanded(
@@ -50,15 +59,15 @@ class _AddTaskBootomSheetState extends State<AddTaskBootomSheet> {
                 controller: desccontroller,
                 hintText: 'Add Description',
                 maxlines: 5,
-                validator: (value) {
-                  if (value == null || value.trim().isEmpty) {
-                    return "Description can't be empty";
-                  }
-                  return null;
-                },
+                // validator: (value) {
+                //   if (value == null || value.trim().isEmpty) {
+                //     return "Description can't be empty";
+                //   }
+                //   return null;
+                // },
               ),
             ),
-            SizedBox(
+            const SizedBox(
               height: 15,
             ),
             Text(
@@ -73,7 +82,7 @@ class _AddTaskBootomSheetState extends State<AddTaskBootomSheet> {
                   DateTime? datetime = await showDatePicker(
                     context: context,
                     firstDate: DateTime.now(),
-                    lastDate: DateTime.now().add(Duration(days: 365)),
+                    lastDate: DateTime.now().add(const Duration(days: 365)),
                     initialDate: selecteddate,
                     initialEntryMode: DatePickerEntryMode.calendarOnly,
                   );
@@ -91,16 +100,15 @@ class _AddTaskBootomSheetState extends State<AddTaskBootomSheet> {
                       .headlineSmall
                       ?.copyWith(fontSize: 18),
                 )),
-            SizedBox(
+            const SizedBox(
               height: 20,
             ),
             DefElevatedbutton(
                 label: "Submit",
                 onpressed: () {
                   if (formkey.currentState!.validate()) {
-                    print(formkey.currentState!.validate());
+                    addTask();
                   }
-                  addTask();
                 }),
           ],
         ),
@@ -109,6 +117,33 @@ class _AddTaskBootomSheetState extends State<AddTaskBootomSheet> {
   }
 
   void addTask() {
-    print("Added");
+    FirebaseFunctions.addToFireStore(TaskModel(
+      title: titlecontroller.text,
+      description: desccontroller.text,
+      date: selecteddate,
+    )).then((value) {
+      // Close the bottom sheet
+      Navigator.of(context).pop();
+      // Refresh the tasks list
+      Provider.of<TasksProvider>(context, listen: false).getTasks();
+      Fluttertoast.showToast(
+          msg: "Task Added Successfully",
+          gravity: ToastGravity.BOTTOM,
+          toastLength: Toast.LENGTH_LONG,
+          timeInSecForIosWeb: 5,
+          backgroundColor: AppTheme.primraryLight.withOpacity(0.9),
+          textColor: AppTheme.white,
+          fontSize: 16.0);
+    }).catchError((error) {
+      Fluttertoast.showToast(
+          msg: "Something went wrong!!",
+          gravity: ToastGravity.BOTTOM,
+          toastLength: Toast.LENGTH_LONG,
+          timeInSecForIosWeb: 5,
+          backgroundColor: AppTheme.red.withOpacity(0.9),
+          textColor: AppTheme.white,
+          fontSize: 16.0);
+      print(error);
+    });
   }
 }
