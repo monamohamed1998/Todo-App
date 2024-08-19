@@ -8,13 +8,16 @@ class DefaultTextFormField extends StatefulWidget {
       this.maxlines = 1,
       this.validator,
       this.icon,
-      this.isPassword = false});
+      this.isPassword = false,
+      this.onChanged});
   final TextEditingController controller;
   final String? Function(String?)? validator;
   final String hintText;
   final int? maxlines;
   final bool? isPassword;
   final Icon? icon;
+  // final VoidCallback onchange;
+  final void Function(String)? onChanged;
 
   @override
   State<DefaultTextFormField> createState() => _DefaultTextFormFieldState();
@@ -46,6 +49,7 @@ class _DefaultTextFormFieldState extends State<DefaultTextFormField> {
       validator: widget.validator,
       autovalidateMode: AutovalidateMode.onUserInteraction,
       obscureText: isObsecure,
+      onChanged: widget.onChanged,
     );
   }
 }

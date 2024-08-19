@@ -30,4 +30,10 @@ class FirebaseFunctions {
     CollectionReference<TaskModel> taskCollection = getcollection();
     return taskCollection.doc(taskId).delete();
   }
+
+  static Future<void> updateTask(TaskModel updatedTask) async {
+    CollectionReference<TaskModel> taskCollection = getcollection();
+    DocumentReference<TaskModel> docRef = taskCollection.doc(updatedTask.id);
+    return docRef.set(updatedTask);
+  }
 }

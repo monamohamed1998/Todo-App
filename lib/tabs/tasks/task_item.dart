@@ -59,14 +59,11 @@ class _TaskItemState extends State<TaskItem> {
           ),
           child: InkWell(
             onDoubleTap: () async {
-              // Navigator.of(context)
-              //     .pushNamed(TaskEdit.routeName, arguments: widget.task );
               final updatedTask = await Navigator.of(context).pushNamed(
                 TaskEdit.routeName,
                 arguments: widget.task,
               ) as TaskModel?;
 
-              // Update the UI if the task was edited
               if (updatedTask != null) {
                 setState(() {
                   widget.task.title = updatedTask.title;
@@ -142,10 +139,3 @@ class _TaskItemState extends State<TaskItem> {
     );
   }
 }
-
-// class TaskData {
-//   String title;
-//   String Desc;
-//   DateTime date;
-//   TaskData({required this.title, required this.Desc, required this.date});
-// }

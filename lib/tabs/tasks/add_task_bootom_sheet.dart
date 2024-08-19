@@ -105,9 +105,13 @@ class _AddTaskBootomSheetState extends State<AddTaskBootomSheet> {
             ),
             DefElevatedbutton(
                 label: "Submit",
-                onpressed: () {
+                onpressed: () async {
                   if (formkey.currentState!.validate()) {
                     addTask();
+                    Navigator.of(context, rootNavigator: true).pop();
+                    Provider.of<TasksProvider>(context, listen: false)
+                        .getTasks();
+                    // setState(() {});
                   }
                 }),
           ],
@@ -122,10 +126,6 @@ class _AddTaskBootomSheetState extends State<AddTaskBootomSheet> {
       description: desccontroller.text,
       date: selecteddate,
     )).then((value) {
-      // Close the bottom sheet
-      Navigator.of(context).pop();
-      // Refresh the tasks list
-      Provider.of<TasksProvider>(context, listen: false).getTasks();
       Fluttertoast.showToast(
           msg: "Task Added Successfully",
           gravity: ToastGravity.BOTTOM,

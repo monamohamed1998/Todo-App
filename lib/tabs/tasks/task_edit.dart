@@ -1,18 +1,28 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:todo/app_theme.dart';
+import 'package:todo/firebase_functions.dart';
 import 'package:todo/models/task_model.dart';
 import 'package:todo/tabs/tasks/def_elevated_button.dart';
 import 'package:todo/tabs/tasks/default_text_form_field.dart';
 import 'package:todo/tabs/tasks/task_item.dart';
 
-class TaskEdit extends StatelessWidget {
+class TaskEdit extends StatefulWidget {
   static const String routeName = "task_edit";
 
+  @override
+  State<TaskEdit> createState() => _TaskEditState();
+}
+
+class _TaskEditState extends State<TaskEdit> {
   TextEditingController titlecontroller = TextEditingController();
+
   TextEditingController desccontroller = TextEditingController();
+
   DateTime selecteddate = DateTime.now();
+
   DateFormat dateformat = DateFormat("dd/MM/yyyy");
+
   GlobalKey<FormState> formkey = GlobalKey<FormState>();
 
   @override
@@ -77,6 +87,7 @@ class TaskEdit extends StatelessWidget {
                       const SizedBox(
                         height: 15,
                       ),
+                      Spacer(),
                       Expanded(
                         child: DefaultTextFormField(
                           controller: titlecontroller,
@@ -87,13 +98,19 @@ class TaskEdit extends StatelessWidget {
                             }
                             return null;
                           },
+                          onChanged: (value) {
+                            task.title = titlecontroller.text;
+                          },
                         ),
                       ),
                       Expanded(
                         child: DefaultTextFormField(
                           controller: desccontroller,
                           hintText: ' Task Details',
-                          maxlines: 3,
+                          maxlines: 5,
+                          onChanged: (value) {
+                            task.description = desccontroller.text;
+                          },
                         ),
                       ),
                       const SizedBox(
@@ -119,7 +136,7 @@ class TaskEdit extends StatelessWidget {
                             );
                             if (datetime != null) {
                               selecteddate = datetime;
-                              // setState(() {});
+                              setState(() {});
                             }
                           },
                           child: Text(
@@ -142,11 +159,23 @@ class TaskEdit extends StatelessWidget {
                               task.description = desccontroller.text;
                               task.date = selecteddate;
 
-                              // Pop the page and return to the previous screen
+                              //  Create the updatedTask object with new values
+                              TaskModel updatedTask = TaskModel(
+                                id: task.id,
+                                title: titlecontroller.text,
+                                description: desccontroller.text,
+                                date: selecteddate,
+                              );
+
+                              //  save the updated task
+                              FirebaseFunctions.updateTask(updatedTask)
+                                  .then((_) {});
                               Navigator.of(context).pop(task);
                             }
                           }),
-                      Spacer(),
+                      Spacer(
+                        flex: 3,
+                      ),
                     ],
                   ),
                 ),
