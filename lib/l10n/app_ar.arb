@@ -1,0 +1,24 @@
+{
+"todo" : "قائمة المهام",
+"language" : "اللغة ",
+"logout" : "الخروج ",
+"done" : "تم",
+"addnewtask" : "أضف مهمة جديدة",
+"addtasktitle" : "أضف عنوان المهمة",
+"adddescription" : "أضف تعليق",
+"selectdate" : "حدد التاريخ",
+"submit" : " تم",
+"edittask" : " تعديل المهمة",
+"edittasktitle" : "تعديل عنوان المهمة",
+"edittaskdetails" : "تعديل الوصف",
+"darkmode" : "الوضع المظلم",
+"login" : " تسجيل الدخول",
+"email" : " البريد الالكتروني",
+"password" : " كلمة المرور",
+"donthaveanaccount" : "ليس لديك حساب؟",
+"register" : "إنشاء حساب",
+"name" : "الاسم",
+"alreadyhaveanaccount" : "لديك حساب ؟"
+
+
+}

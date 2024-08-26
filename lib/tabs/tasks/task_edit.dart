@@ -1,14 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 import 'package:todo/app_theme.dart';
+import 'package:todo/auth/user_provider.dart';
 import 'package:todo/firebase_functions.dart';
 import 'package:todo/models/task_model.dart';
 import 'package:todo/tabs/tasks/def_elevated_button.dart';
 import 'package:todo/tabs/tasks/default_text_form_field.dart';
-import 'package:todo/tabs/tasks/task_item.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:todo/tabs/tasks/tasks_provider.dart';
 
 class TaskEdit extends StatefulWidget {
   static const String routeName = "task_edit";
+
+  const TaskEdit({super.key});
 
   @override
   State<TaskEdit> createState() => _TaskEditState();
@@ -24,9 +29,16 @@ class _TaskEditState extends State<TaskEdit> {
   DateFormat dateformat = DateFormat("dd/MM/yyyy");
 
   GlobalKey<FormState> formkey = GlobalKey<FormState>();
+  bool saveDate = false;
 
   @override
   Widget build(BuildContext context) {
+    TasksProvider tasksProvider = Provider.of<TasksProvider>(context);
+    if (saveDate) {
+      final newdate = Provider.of<TasksProvider>(context).selecteddate;
+      tasksProvider.changeDate(newdate);
+      saveDate = true;
+    }
     final TaskModel task =
         ModalRoute.of(context)?.settings.arguments as TaskModel;
 
@@ -38,7 +50,7 @@ class _TaskEditState extends State<TaskEdit> {
         children: [
           Container(
             height: MediaQuery.of(context).size.height * 0.17,
-            decoration: BoxDecoration(
+            decoration: const BoxDecoration(
               color: AppTheme.primraryLight,
             ),
           ),
@@ -51,10 +63,10 @@ class _TaskEditState extends State<TaskEdit> {
                   onPressed: () {
                     Navigator.of(context).pop();
                   },
-                  icon: Icon(Icons.arrow_back),
+                  icon: const Icon(Icons.arrow_back),
                   color: AppTheme.white,
                 ),
-                Text("TODO List",
+                Text(AppLocalizations.of(context)!.todo,
                     style: Theme.of(context).textTheme.headlineMedium!.copyWith(
                         color: AppTheme.white, fontWeight: FontWeight.w400)),
               ],
@@ -67,9 +79,9 @@ class _TaskEditState extends State<TaskEdit> {
                 right: MediaQuery.of(context).size.width * 0.1,
               ),
               child: Container(
-                padding: EdgeInsets.all(16),
+                padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                    color: AppTheme.white,
+                    color: Color.fromARGB(204, 199, 245, 245),
                     borderRadius: BorderRadius.circular(15)),
                 height: MediaQuery.of(context).size.height * 0.80,
                 width: MediaQuery.of(context).size.width * 0.95,
@@ -81,17 +93,17 @@ class _TaskEditState extends State<TaskEdit> {
                         height: 15,
                       ),
                       Text(
-                        "Edit Task",
+                        AppLocalizations.of(context)!.edittask,
                         style: Theme.of(context).textTheme.titleLarge,
                       ),
                       const SizedBox(
                         height: 15,
                       ),
-                      Spacer(),
+                      const Spacer(),
                       Expanded(
                         child: DefaultTextFormField(
                           controller: titlecontroller,
-                          hintText: 'Add Task Title',
+                          hintText: AppLocalizations.of(context)!.edittasktitle,
                           validator: (value) {
                             if (value == null || value.trim().isEmpty) {
                               return "Title can't be empty";
@@ -106,7 +118,8 @@ class _TaskEditState extends State<TaskEdit> {
                       Expanded(
                         child: DefaultTextFormField(
                           controller: desccontroller,
-                          hintText: ' Task Details',
+                          hintText:
+                              AppLocalizations.of(context)!.edittaskdetails,
                           maxlines: 5,
                           onChanged: (value) {
                             task.description = desccontroller.text;
@@ -116,13 +129,8 @@ class _TaskEditState extends State<TaskEdit> {
                       const SizedBox(
                         height: 15,
                       ),
-                      Text(
-                        "Selected Date",
-                        style: Theme.of(context)
-                            .textTheme
-                            .headlineSmall
-                            ?.copyWith(fontSize: 20),
-                      ),
+                      Text(AppLocalizations.of(context)!.selectdate,
+                          style: Theme.of(context).textTheme.headlineSmall),
                       InkWell(
                           onTap: () async {
                             DateTime? datetime = await showDatePicker(
@@ -134,10 +142,9 @@ class _TaskEditState extends State<TaskEdit> {
                               initialEntryMode:
                                   DatePickerEntryMode.calendarOnly,
                             );
-                            if (datetime != null) {
-                              selecteddate = datetime;
-                              setState(() {});
-                            }
+                            // __________________________________________
+                            selecteddate = datetime!;
+                            setState(() {});
                           },
                           child: Text(
                             dateformat.format(
@@ -152,7 +159,7 @@ class _TaskEditState extends State<TaskEdit> {
                         height: 20,
                       ),
                       DefElevatedbutton(
-                          label: "Submit",
+                          label: AppLocalizations.of(context)!.done,
                           onpressed: () {
                             if (formkey.currentState!.validate()) {
                               task.title = titlecontroller.text;
@@ -166,14 +173,17 @@ class _TaskEditState extends State<TaskEdit> {
                                 description: desccontroller.text,
                                 date: selecteddate,
                               );
-
+                              final userid = Provider.of<UserProvider>(context,
+                                      listen: false)
+                                  .currentUser!
+                                  .id;
                               //  save the updated task
-                              FirebaseFunctions.updateTask(updatedTask)
+                              FirebaseFunctions.updateTask(updatedTask, userid)
                                   .then((_) {});
                               Navigator.of(context).pop(task);
                             }
                           }),
-                      Spacer(
+                      const Spacer(
                         flex: 3,
                       ),
                     ],

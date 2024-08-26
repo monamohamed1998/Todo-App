@@ -9,13 +9,15 @@ class DefaultTextFormField extends StatefulWidget {
       this.validator,
       this.icon,
       this.isPassword = false,
-      this.onChanged});
+      this.onChanged,
+      this.textStyle});
   final TextEditingController controller;
   final String? Function(String?)? validator;
   final String hintText;
   final int? maxlines;
   final bool? isPassword;
   final Icon? icon;
+  final TextStyle? textStyle;
   // final VoidCallback onchange;
   final void Function(String)? onChanged;
 
@@ -29,6 +31,7 @@ class _DefaultTextFormFieldState extends State<DefaultTextFormField> {
   Widget build(BuildContext context) {
     return TextFormField(
       controller: widget.controller,
+      style: widget.textStyle,
       decoration: InputDecoration(
         hintText: widget.hintText,
         suffixIcon: widget.isPassword!

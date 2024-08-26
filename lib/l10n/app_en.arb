@@ -1,0 +1,24 @@
+{
+"todo" : "todo",
+"language" : "language",
+"logout" : "logout",
+"done" : "done",
+"addnewtask" : "Add New Task",
+"addtasktitle" : "Add Task Title",
+"adddescription" : "Add Description",
+"selectdate" : "Select Date",
+"submit" : " Submit",
+"edittask" : " Edit Task",
+"edittasktitle" : "Edit Task Title",
+"edittaskdetails" : "Edit Task Details",
+"darkmode" : "Dark Mode",
+"login" : " login",
+"email" : " Email",
+"password" : " Password",
+"donthaveanaccount" : " Don't have an account yet?",
+"register" : "Register",
+"name" : "Name",
+"alreadyhaveanaccount" : "Already have an account?"
+
+
+}

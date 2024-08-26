@@ -1,36 +1,50 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+import 'package:provider/provider.dart';
 import 'package:todo/app_theme.dart';
-import 'package:todo/tabs/login_screen.dart';
+import 'package:todo/auth/user_provider.dart';
+import 'package:todo/firebase_functions.dart';
+import 'package:todo/auth/login_screen.dart';
+import 'package:todo/home_page.dart';
+import 'package:todo/tabs/settings/settings_provider.dart';
 import 'package:todo/tabs/tasks/def_elevated_button.dart';
 import 'package:todo/tabs/tasks/default_text_form_field.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class RegisterScreen extends StatelessWidget {
   static const String routeName = "register";
-  TextEditingController nameController = TextEditingController();
-  TextEditingController EmailController = TextEditingController();
-  TextEditingController PasswordController = TextEditingController();
-  GlobalKey<FormState> formkey = GlobalKey<FormState>();
+  final TextEditingController nameController = TextEditingController();
+  final TextEditingController EmailController = TextEditingController();
+  final TextEditingController PasswordController = TextEditingController();
+  final GlobalKey<FormState> formkey = GlobalKey<FormState>();
+
+  RegisterScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    SettingsProvider settingsProvider = Provider.of<SettingsProvider>(context);
+
     return Scaffold(
       resizeToAvoidBottomInset: true,
       appBar: AppBar(
         title: Text(
-          "Create Account",
+          AppLocalizations.of(context)!.register,
           style:
               Theme.of(context).textTheme.headlineSmall?.copyWith(fontSize: 25),
         ),
         centerTitle: true,
-        backgroundColor: AppTheme.bgLight,
+        backgroundColor: settingsProvider.isdark
+            ? AppTheme.primrarydark
+            : Colors.transparent,
       ),
       body: SingleChildScrollView(
-        physics: NeverScrollableScrollPhysics(),
+        physics: const NeverScrollableScrollPhysics(),
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 15),
           child: Form(
             key: formkey,
-            child: Container(
+            child: SizedBox(
               height: MediaQuery.of(context).size.height * 0.8,
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -40,13 +54,13 @@ class RegisterScreen extends StatelessWidget {
                     width: 150,
                     height: 150,
                   ),
-                  SizedBox(
+                  const SizedBox(
                     height: 30,
                   ),
                   DefaultTextFormField(
                     controller: nameController,
-                    hintText: "Name",
-                    icon: Icon(Icons.person),
+                    hintText: AppLocalizations.of(context)!.name,
+                    icon: const Icon(Icons.person),
                     validator: (value) {
                       if (value == null || value.trim().isEmpty) {
                         return "Name can't be empty";
@@ -57,13 +71,13 @@ class RegisterScreen extends StatelessWidget {
                       return null;
                     },
                   ),
-                  SizedBox(
+                  const SizedBox(
                     height: 15,
                   ),
                   DefaultTextFormField(
                     controller: EmailController,
-                    hintText: "Email",
-                    icon: Icon(Icons.email),
+                    hintText: AppLocalizations.of(context)!.email,
+                    icon: const Icon(Icons.email),
                     validator: (value) {
                       if (value == null || value.trim().isEmpty) {
                         return "Email can't be empty";
@@ -74,33 +88,31 @@ class RegisterScreen extends StatelessWidget {
                       return null;
                     },
                   ),
-                  SizedBox(
+                  const SizedBox(
                     height: 15,
                   ),
                   DefaultTextFormField(
                       controller: PasswordController,
-                      hintText: "Password",
+                      hintText: AppLocalizations.of(context)!.password,
                       isPassword: true,
                       validator: (value) {
-                        if (value == null || value.trim().isEmpty) {
+                        if (value == null ||
+                            value.trim().isEmpty ||
+                            value.length < 6) {
                           return "Password can't be empty";
                         }
-                        if (value.length < 6) {
-                          return "Password can't be less than 6 characters";
-                        }
+
                         return null;
                       }),
-                  SizedBox(
+                  const SizedBox(
                     height: 30,
                   ),
                   DefElevatedbutton(
-                      label: "Register",
+                      label: AppLocalizations.of(context)!.register,
                       onpressed: () {
-                        if (formkey.currentState!.validate()) {
-                          print("done");
-                        }
+                        register(context);
                       }),
-                  SizedBox(
+                  const SizedBox(
                     height: 15,
                   ),
                   TextButton(
@@ -108,7 +120,8 @@ class RegisterScreen extends StatelessWidget {
                         Navigator.of(context)
                             .pushReplacementNamed(LoginScreen.routeName);
                       },
-                      child: Text("Already have an account?",
+                      child: Text(
+                          AppLocalizations.of(context)!.alreadyhaveanaccount,
                           style: Theme.of(context)
                               .textTheme
                               .headlineSmall
@@ -121,5 +134,32 @@ class RegisterScreen extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  void register(BuildContext context) {
+    if (formkey.currentState!.validate()) {
+      FirebaseFunctions.register(
+              name: nameController.text,
+              email: EmailController.text,
+              password: PasswordController.text)
+          .then((user) {
+        // when success=> update the user in user provider
+        Provider.of<UserProvider>(context, listen: false).updateUser(user);
+        Navigator.of(context).pushReplacementNamed(HomePage.routeName);
+      }).catchError((error) {
+        String? msg;
+        if (error is FirebaseAuthException) {
+          msg = error.message;
+        }
+        Fluttertoast.showToast(
+            msg: msg ?? "Something went wrong!!",
+            gravity: ToastGravity.BOTTOM,
+            toastLength: Toast.LENGTH_LONG,
+            timeInSecForIosWeb: 5,
+            backgroundColor: AppTheme.red.withOpacity(0.9),
+            textColor: AppTheme.white,
+            fontSize: 16.0);
+      });
+    }
   }
 }

@@ -3,10 +3,13 @@ import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:provider/provider.dart';
 import 'package:todo/app_theme.dart';
+import 'package:todo/auth/user_provider.dart';
 import 'package:todo/firebase_functions.dart';
 import 'package:todo/models/task_model.dart';
+import 'package:todo/tabs/settings/settings_provider.dart';
 import 'package:todo/tabs/tasks/task_edit.dart';
 import 'package:todo/tabs/tasks/tasks_provider.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class TaskItem extends StatefulWidget {
   const TaskItem({super.key, required this.task});
@@ -20,25 +23,28 @@ class _TaskItemState extends State<TaskItem> {
   bool isDone = false;
   @override
   Widget build(BuildContext context) {
+    SettingsProvider settingsProvider = Provider.of<SettingsProvider>(context);
+
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 10),
       child: Slidable(
           startActionPane: ActionPane(
-            motion: DrawerMotion(),
+            motion: const DrawerMotion(),
             dragDismissible: false,
-            key: ValueKey(0),
+            key: const ValueKey(0),
             dismissible: DismissiblePane(onDismissed: () {}),
             children: [
               SlidableAction(
-                onPressed: (context) {
-                  FirebaseFunctions.deleteTask(widget.task.id)
-                      .timeout(
-                    Duration(microseconds: 0),
-                    onTimeout: () =>
-                        Provider.of<TasksProvider>(context, listen: false)
-                            .getTasks(),
-                  )
-                      .catchError((error) {
+                onPressed: (_) {
+                  final userid =
+                      Provider.of<UserProvider>(context, listen: false)
+                          .currentUser!
+                          .id;
+                  FirebaseFunctions.deleteTask(widget.task.id, userid)
+                      .then((result) {
+                    Provider.of<TasksProvider>(context, listen: false)
+                        .getTasks(userid);
+                  }).catchError((error) {
                     Fluttertoast.showToast(
                         msg: "Something went wrong!",
                         gravity: ToastGravity.BOTTOM,
@@ -74,8 +80,9 @@ class _TaskItemState extends State<TaskItem> {
             },
             child: Container(
               padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
+              decoration: const BoxDecoration(
                 color: AppTheme.white,
+
                 // borderRadius: BorderRadius.circular(15),
               ),
               child: Row(
@@ -125,7 +132,7 @@ class _TaskItemState extends State<TaskItem> {
                             ),
                           )
                         : Text(
-                            "Done!",
+                            AppLocalizations.of(context)!.done,
                             style: Theme.of(context)
                                 .textTheme
                                 .headlineSmall

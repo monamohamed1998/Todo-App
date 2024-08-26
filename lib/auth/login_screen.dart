@@ -1,37 +1,50 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+import 'package:provider/provider.dart';
 import 'package:todo/app_theme.dart';
-import 'package:todo/register_screen.dart';
-import 'package:todo/tabs/login_screen.dart';
+import 'package:todo/auth/user_provider.dart';
+import 'package:todo/firebase_functions.dart';
+import 'package:todo/home_page.dart';
+import 'package:todo/auth/register_screen.dart';
+import 'package:todo/tabs/settings/settings_provider.dart';
 import 'package:todo/tabs/tasks/def_elevated_button.dart';
 import 'package:todo/tabs/tasks/default_text_form_field.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class LoginScreen extends StatelessWidget {
   static const String routeName = "login";
-  TextEditingController EmailController = TextEditingController();
-  TextEditingController PasswordController = TextEditingController();
-  GlobalKey<FormState> formkey = GlobalKey<FormState>();
-  bool isObsecure = false;
+  final TextEditingController EmailController = TextEditingController();
+  final TextEditingController PasswordController = TextEditingController();
+  final GlobalKey<FormState> formkey = GlobalKey<FormState>();
+  final bool isObsecure = false;
+
+  LoginScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    SettingsProvider settingsProvider = Provider.of<SettingsProvider>(context);
+
     return Scaffold(
       resizeToAvoidBottomInset: true,
       appBar: AppBar(
+        backgroundColor: settingsProvider.isdark
+            ? AppTheme.primrarydark
+            : Colors.transparent,
         title: Text(
-          " Login",
+          AppLocalizations.of(context)!.login,
           style:
               Theme.of(context).textTheme.headlineSmall?.copyWith(fontSize: 25),
         ),
         centerTitle: true,
-        backgroundColor: AppTheme.bgLight,
       ),
       body: SingleChildScrollView(
-        physics: NeverScrollableScrollPhysics(),
+        physics: const NeverScrollableScrollPhysics(),
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 15),
           child: Form(
             key: formkey,
-            child: Container(
+            child: SizedBox(
               height: MediaQuery.of(context).size.height * 0.8,
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -41,13 +54,13 @@ class LoginScreen extends StatelessWidget {
                     width: 150,
                     height: 150,
                   ),
-                  SizedBox(
+                  const SizedBox(
                     height: 30,
                   ),
                   DefaultTextFormField(
                     controller: EmailController,
-                    hintText: "Email",
-                    icon: Icon(Icons.email),
+                    hintText: AppLocalizations.of(context)!.email,
+                    icon: const Icon(Icons.email),
                     validator: (value) {
                       if (value == null || value.trim().isEmpty) {
                         return "Email can't be empty";
@@ -58,12 +71,12 @@ class LoginScreen extends StatelessWidget {
                       return null;
                     },
                   ),
-                  SizedBox(
+                  const SizedBox(
                     height: 15,
                   ),
                   DefaultTextFormField(
                       controller: PasswordController,
-                      hintText: "Password",
+                      hintText: AppLocalizations.of(context)!.password,
                       isPassword: true,
                       validator: (value) {
                         if (value == null || value.trim().isEmpty) {
@@ -74,17 +87,15 @@ class LoginScreen extends StatelessWidget {
                         }
                         return null;
                       }),
-                  SizedBox(
+                  const SizedBox(
                     height: 30,
                   ),
                   DefElevatedbutton(
-                      label: "Login",
+                      label: AppLocalizations.of(context)!.login,
                       onpressed: () {
-                        if (formkey.currentState!.validate()) {
-                          print("done");
-                        }
+                        login(context);
                       }),
-                  SizedBox(
+                  const SizedBox(
                     height: 15,
                   ),
                   TextButton(
@@ -92,7 +103,8 @@ class LoginScreen extends StatelessWidget {
                         Navigator.of(context)
                             .pushReplacementNamed(RegisterScreen.routeName);
                       },
-                      child: Text("Don't have an account yet?",
+                      child: Text(
+                          AppLocalizations.of(context)!.donthaveanaccount,
                           style: Theme.of(context)
                               .textTheme
                               .headlineSmall
@@ -105,5 +117,29 @@ class LoginScreen extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  void login(BuildContext context) {
+    if (formkey.currentState!.validate()) {
+      FirebaseFunctions.login(
+              email: EmailController.text, password: PasswordController.text)
+          .then((user) {
+        Provider.of<UserProvider>(context, listen: false).updateUser(user);
+        Navigator.of(context).pushReplacementNamed(HomePage.routeName);
+      }).catchError((error) {
+        String? msg;
+        if (error is FirebaseAuthException) {
+          msg = error.message;
+        }
+        Fluttertoast.showToast(
+            msg: msg ?? "Something went wrong!!",
+            gravity: ToastGravity.BOTTOM,
+            toastLength: Toast.LENGTH_LONG,
+            timeInSecForIosWeb: 5,
+            backgroundColor: AppTheme.red.withOpacity(0.9),
+            textColor: AppTheme.white,
+            fontSize: 16.0);
+      });
+    }
   }
 }
